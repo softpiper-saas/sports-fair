@@ -4,7 +4,7 @@ import { StoreProvider } from "@/store/provider";
 
 export const metadata: Metadata = {
   title: "Sportsfair",
-  description: "A Next.js starter with PostgreSQL, Drizzle, Redux, shadcn/ui, and BlockNote."
+  description: "বাংলা ভাষায় দ্রুত, নির্ভরযোগ্য এবং আধুনিক স্পোর্টস নিউজ।"
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="bn">
       <body>
         <StoreProvider>{children}</StoreProvider>
       </body>

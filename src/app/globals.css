@@ -31,5 +31,33 @@ body {
   min-height: 100vh;
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: SolaimanLipi, "Noto Sans Bengali", "Hind Siliguri", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+.prose p {
+  margin: 0 0 1.35rem;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin: 2rem 0 0.85rem;
+  line-height: 1.25;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1rem 0 1.35rem;
+  padding-left: 1.5rem;
+}
+
+.prose blockquote {
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1rem;
+  color: var(--color-muted-foreground);
 }
