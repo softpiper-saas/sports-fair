@@ -18,6 +18,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@better-auth/infra": "^0.4.9",
     "@blocknote/core": "^0.29.1",
     "@blocknote/mantine": "^0.29.1",

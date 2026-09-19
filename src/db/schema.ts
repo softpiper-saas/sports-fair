@@ -158,6 +158,71 @@ export const mediaAssets = pgTable(
   ]
 );
 
+export const videos = pgTable(
+  "videos",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    titleBn: text("title_bn").notNull(),
+    titleEn: text("title_en"),
+    slug: text("slug").notNull().unique(),
+    description: text("description"),
+    videoUrl: text("video_url").notNull(),
+    thumbnailId: uuid("thumbnail_id").references(() => mediaAssets.id, { onDelete: "set null" }),
+    categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+    createdById: text("created_by_id").references(() => user.id, { onDelete: "set null" }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("videos_category_id_idx").on(table.categoryId),
+    index("videos_created_by_idx").on(table.createdById),
+    index("videos_slug_idx").on(table.slug)
+  ]
+);
+
+export const galleries = pgTable(
+  "galleries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    titleBn: text("title_bn").notNull(),
+    titleEn: text("title_en"),
+    slug: text("slug").notNull().unique(),
+    description: text("description"),
+    coverImageId: uuid("cover_image_id").references(() => mediaAssets.id, { onDelete: "set null" }),
+    categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+    createdById: text("created_by_id").references(() => user.id, { onDelete: "set null" }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("galleries_category_id_idx").on(table.categoryId),
+    index("galleries_created_by_idx").on(table.createdById),
+    index("galleries_slug_idx").on(table.slug)
+  ]
+);
+
+export const galleryImages = pgTable(
+  "gallery_images",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    galleryId: uuid("gallery_id")
+      .notNull()
+      .references(() => galleries.id, { onDelete: "cascade" }),
+    mediaAssetId: uuid("media_asset_id")
+      .notNull()
+      .references(() => mediaAssets.id, { onDelete: "cascade" }),
+    captionBn: text("caption_bn"),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("gallery_images_gallery_id_idx").on(table.galleryId),
+    uniqueIndex("gallery_images_gallery_asset_idx").on(table.galleryId, table.mediaAssetId)
+  ]
+);
+
 export const sports = pgTable(
   "sports",
   {
