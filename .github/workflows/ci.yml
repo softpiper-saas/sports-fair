@@ -25,6 +25,8 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://sportsfair:sportsfair@localhost:5432/sportsfair
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
     steps:
       - name: Checkout
         uses: actions/checkout@v4
