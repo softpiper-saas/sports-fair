@@ -5,7 +5,11 @@ import { AdSlot } from "@/components/public/ad-slot";
 import { ArticleEngagement } from "@/components/public/article-engagement";
 import { ArticleImage } from "@/components/public/article-image";
 import { PageShell } from "@/components/public/page-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { submitCommentAction, votePollAction } from "@/app/news/[slug]/actions";
 import { formatBanglaDate, getArticleBySlug, getPublishedArticles } from "@/lib/public/content";
+import { getActiveArticlePoll, getApprovedComments } from "@/lib/public/engagement";
 import { jsonLdScript } from "@/lib/seo/json-ld";
 import { siteName, siteUrl } from "@/lib/site";
 
@@ -45,7 +49,14 @@ export default async function NewsPage({ params }: NewsPageProps) {
     notFound();
   }
 
-  const related = (await getPublishedArticles(6)).filter((item) => item.slug !== article.slug).slice(0, 4);
+  const [relatedArticles, comments, poll] = await Promise.all([
+    getPublishedArticles(6),
+    getApprovedComments(article.id),
+    getActiveArticlePoll(article.id)
+  ]);
+  const related = relatedArticles.filter((item) => item.slug !== article.slug).slice(0, 4);
+  const submitComment = submitCommentAction.bind(null, article.id, article.slug);
+  const votePoll = votePollAction.bind(null, article.id, article.slug);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -122,6 +133,11 @@ export default async function NewsPage({ params }: NewsPageProps) {
           <AdSlot className="mt-8" pageType="article" sectionSlug={article.categorySlug} slotKey="article-sidebar" />
         </article>
 
+        <section className="mx-auto grid max-w-4xl gap-6 px-4 pb-12 sm:px-6 lg:px-8">
+          {poll ? <ArticlePoll poll={poll} action={votePoll} /> : null}
+          <ArticleComments comments={comments} action={submitComment} />
+        </section>
+
         <section className="mx-auto max-w-4xl px-4 pb-12 sm:px-6 lg:px-8">
           <h2 className="border-t border-neutral-200 pt-6 text-2xl font-black">আরও পড়ুন</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -134,5 +150,89 @@ export default async function NewsPage({ params }: NewsPageProps) {
         </section>
       </main>
     </PageShell>
+  );
+}
+
+type ArticlePollProps = {
+  action: (formData: FormData) => void | Promise<void>;
+  poll: NonNullable<Awaited<ReturnType<typeof getActiveArticlePoll>>>;
+};
+
+function ArticlePoll({ action, poll }: ArticlePollProps) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
+      <h2 className="text-xl font-black">পাঠক জরিপ</h2>
+      <p className="mt-2 text-lg font-bold text-neutral-900">{poll.questionBn}</p>
+      <form action={action} className="mt-4 grid gap-3">
+        {poll.options.map((option) => {
+          const percentage = poll.totalVotes > 0 ? Math.round((option.votes / poll.totalVotes) * 100) : 0;
+
+          return (
+            <label className="rounded-md border border-neutral-200 p-3" key={option.id}>
+              <span className="flex items-center gap-3">
+                <input name="optionId" required type="radio" value={option.id} />
+                <span className="font-bold">{option.labelBn}</span>
+                <span className="ml-auto text-sm text-muted-foreground">{percentage}%</span>
+              </span>
+              <span className="mt-2 block h-2 overflow-hidden rounded-full bg-neutral-100">
+                <span className="block h-full bg-primary" style={{ width: `${percentage}%` }} />
+              </span>
+            </label>
+          );
+        })}
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm text-muted-foreground">{poll.totalVotes} ভোট</span>
+          <Button type="submit">ভোট দিন</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+type ArticleCommentsProps = {
+  action: (formData: FormData) => void | Promise<void>;
+  comments: Awaited<ReturnType<typeof getApprovedComments>>;
+};
+
+function ArticleComments({ action, comments }: ArticleCommentsProps) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
+      <h2 className="text-xl font-black">মন্তব্য</h2>
+      <form action={action} className="mt-4 grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input name="authorName" placeholder="আপনার নাম" required />
+          <Input name="authorEmail" placeholder="ইমেইল (ঐচ্ছিক)" type="email" />
+        </div>
+        <textarea
+          className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          maxLength={1200}
+          name="body"
+          placeholder="আপনার মন্তব্য লিখুন"
+          required
+        />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">মন্তব্য প্রকাশের আগে মডারেশন করা হবে।</p>
+          <Button type="submit">মন্তব্য পাঠান</Button>
+        </div>
+      </form>
+
+      <div className="mt-6 divide-y divide-neutral-200">
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <article className="py-4" key={comment.id}>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-bold">{comment.authorName}</span>
+                <time className="text-muted-foreground" dateTime={comment.createdAt.toISOString()}>
+                  {formatBanglaDate(comment.createdAt)}
+                </time>
+              </div>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-800">{comment.body}</p>
+            </article>
+          ))
+        ) : (
+          <p className="py-4 text-sm text-muted-foreground">এখনো কোনো অনুমোদিত মন্তব্য নেই।</p>
+        )}
+      </div>
+    </div>
   );
 }

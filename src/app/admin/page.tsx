@@ -1,4 +1,4 @@
-import { BadgeDollarSign, Flame, LayoutGrid, Newspaper, Trophy, Users } from "lucide-react";
+import { BadgeDollarSign, Flame, LayoutGrid, MessageSquareText, Newspaper, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { AdminFrame } from "@/components/admin/admin-frame";
 import { requireStaffSession } from "@/lib/auth-guard";
@@ -33,6 +33,12 @@ const sections = [
     description: "Manage ad slots, snippets and sponsored content inventory.",
     href: "/admin/ads",
     icon: BadgeDollarSign
+  },
+  {
+    title: "Engagement",
+    description: "Moderate comments and manage article polls.",
+    href: "/admin/engagement",
+    icon: MessageSquareText
   },
   {
     title: "Staff",

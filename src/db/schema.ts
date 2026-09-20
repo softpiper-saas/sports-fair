@@ -15,6 +15,7 @@ import {
 export const articleStatus = pgEnum("article_status", ["draft", "review", "scheduled", "published", "archived"]);
 export const breakingStatus = pgEnum("breaking_status", ["normal", "breaking", "major_breaking", "developing"]);
 export const articleEngagementEventType = pgEnum("article_engagement_event_type", ["view", "share"]);
+export const commentStatus = pgEnum("comment_status", ["pending", "approved", "rejected", "spam"]);
 export const matchStatus = pgEnum("match_status", ["scheduled", "live", "completed", "postponed", "cancelled"]);
 export const adSlotPlacement = pgEnum("ad_slot_placement", [
   "top_banner",
@@ -459,6 +460,83 @@ export const articleTournaments = pgTable(
       .references(() => tournaments.id, { onDelete: "cascade" })
   },
   (table) => [uniqueIndex("article_tournaments_article_tournament_idx").on(table.articleId, table.tournamentId)]
+);
+
+export const articleComments = pgTable(
+  "article_comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    articleId: uuid("article_id")
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    authorName: text("author_name").notNull(),
+    authorEmail: text("author_email"),
+    body: text("body").notNull(),
+    status: commentStatus("status").default("pending").notNull(),
+    ipHash: text("ip_hash"),
+    userAgent: text("user_agent"),
+    moderatedById: text("moderated_by_id").references(() => user.id, { onDelete: "set null" }),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("article_comments_article_status_idx").on(table.articleId, table.status),
+    index("article_comments_status_created_idx").on(table.status, table.createdAt)
+  ]
+);
+
+export const polls = pgTable(
+  "polls",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    articleId: uuid("article_id").references(() => articles.id, { onDelete: "cascade" }),
+    questionBn: text("question_bn").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdById: text("created_by_id").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("polls_active_window_idx").on(table.isActive, table.startsAt, table.endsAt),
+    index("polls_article_id_idx").on(table.articleId)
+  ]
+);
+
+export const pollOptions = pgTable(
+  "poll_options",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pollId: uuid("poll_id")
+      .notNull()
+      .references(() => polls.id, { onDelete: "cascade" }),
+    labelBn: text("label_bn").notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index("poll_options_poll_order_idx").on(table.pollId, table.sortOrder)]
+);
+
+export const pollVotes = pgTable(
+  "poll_votes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pollId: uuid("poll_id")
+      .notNull()
+      .references(() => polls.id, { onDelete: "cascade" }),
+    optionId: uuid("option_id")
+      .notNull()
+      .references(() => pollOptions.id, { onDelete: "cascade" }),
+    voterKey: text("voter_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("poll_votes_option_id_idx").on(table.optionId),
+    uniqueIndex("poll_votes_poll_voter_idx").on(table.pollId, table.voterKey)
+  ]
 );
 
 export const matches = pgTable(

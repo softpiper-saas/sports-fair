@@ -50,6 +50,13 @@
       "when": 1789911838214,
       "tag": "0006_stale_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789912574351,
+      "tag": "0007_magical_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }
