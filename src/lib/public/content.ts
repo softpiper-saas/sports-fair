@@ -253,6 +253,8 @@ export async function getArticleBySlug(slug: string) {
       summary: articles.summary,
       bodyHtml: articles.bodyHtml,
       breaking: articles.breaking,
+      sponsored: articles.sponsored,
+      sponsorName: articles.sponsorName,
       publishedAt: articles.publishedAt,
       contentUpdatedAt: articles.contentUpdatedAt,
       seoTitle: articles.seoTitle,

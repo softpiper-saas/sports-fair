@@ -69,6 +69,10 @@ export function ArticleForm({ action, article, categories, media, tags = [] }: A
               <input defaultChecked={article?.featured ?? false} name="featured" type="checkbox" />
               Featured
             </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input defaultChecked={article?.sponsored ?? false} name="sponsored" type="checkbox" />
+              Sponsored
+            </label>
             <Input
               defaultValue={datetimeLocalValue(article?.publishedAt ?? null)}
               name="publishedAt"
@@ -105,6 +109,25 @@ export function ArticleForm({ action, article, categories, media, tags = [] }: A
               ))}
             </select>
             <Input defaultValue={tags.map((tag) => tag.nameBn).join(", ")} name="tags" placeholder="Tags, comma separated" />
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="text-base font-semibold">Sponsor</h2>
+          <div className="mt-4 space-y-3">
+            <Input defaultValue={article?.sponsorName ?? ""} name="sponsorName" placeholder="Sponsor name" />
+            <select
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              defaultValue={article?.sponsorLogoId ?? ""}
+              name="sponsorLogoId"
+            >
+              <option value="">No sponsor logo</option>
+              {media.map((asset) => (
+                <option key={asset.id} value={asset.id}>
+                  {asset.altBn || asset.objectKey}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

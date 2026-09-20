@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/public/ad-slot";
 import { ArticleEngagement } from "@/components/public/article-engagement";
 import { ArticleImage } from "@/components/public/article-image";
 import { PageShell } from "@/components/public/page-shell";
@@ -72,6 +73,11 @@ export default async function NewsPage({ params }: NewsPageProps) {
           <header>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               {article.breaking !== "normal" ? <span className="rounded bg-red-600 px-2 py-1 text-white">ব্রেকিং</span> : null}
+              {article.sponsored ? (
+                <span className="rounded bg-amber-100 px-2 py-1 text-amber-800">
+                  স্পনসরড{article.sponsorName ? `: ${article.sponsorName}` : ""}
+                </span>
+              ) : null}
               {article.categoryName ? (
                 <Link
                   href={`/section/${encodeURIComponent(article.categorySlug || "")}`}
@@ -91,6 +97,8 @@ export default async function NewsPage({ params }: NewsPageProps) {
             <ArticleEngagement articleId={article.id} title={article.headlineBn} />
           </header>
 
+          <AdSlot className="mt-6" pageType="article" sectionSlug={article.categorySlug} slotKey="article-header" />
+
           <figure className="mt-7 overflow-hidden rounded-lg border border-neutral-200 bg-white">
             <div className="relative aspect-[16/10] bg-neutral-100">
               <ArticleImage src={article.imageUrl} alt={article.imageAlt || article.headlineBn} priority />
@@ -104,10 +112,14 @@ export default async function NewsPage({ params }: NewsPageProps) {
             ) : null}
           </figure>
 
+          <AdSlot className="mt-8" pageType="article" sectionSlug={article.categorySlug} slotKey="article-in-article" />
+
           <div
             className="prose prose-neutral mt-8 max-w-none text-lg leading-8 prose-headings:font-black prose-a:text-primary"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml || "<p>বিস্তারিত কনটেন্ট শিগগিরই যোগ হবে।</p>" }}
           />
+
+          <AdSlot className="mt-8" pageType="article" sectionSlug={article.categorySlug} slotKey="article-sidebar" />
         </article>
 
         <section className="mx-auto max-w-4xl px-4 pb-12 sm:px-6 lg:px-8">

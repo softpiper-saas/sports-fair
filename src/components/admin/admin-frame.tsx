@@ -8,6 +8,7 @@ const navItems = [
   { href: "/admin/breaking", label: "Breaking" },
   { href: "/admin/sports", label: "Sports" },
   { href: "/admin/sports/catalog", label: "Catalog" },
+  { href: "/admin/ads", label: "Ads" },
   { href: "/admin/articles", label: "Articles" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/media", label: "Media" },

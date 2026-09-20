@@ -43,6 +43,13 @@
       "when": 1789893110459,
       "tag": "0005_cuddly_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789911838214,
+      "tag": "0006_stale_stature",
+      "breakpoints": true
     }
   ]
 }

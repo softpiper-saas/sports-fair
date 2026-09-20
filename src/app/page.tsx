@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Radio } from "lucide-react";
+import { AdSlot } from "@/components/public/ad-slot";
 import { PageShell } from "@/components/public/page-shell";
 import { StoryCard } from "@/components/public/story-card";
 import {
@@ -128,6 +129,10 @@ export default async function Home() {
           </aside>
         </section>
 
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <AdSlot className="mb-4" pageType="home" slotKey="home-top" />
+        </div>
+
         <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <SectionHeader title="লাইভ ও সূচি" href="/live" />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -139,6 +144,10 @@ export default async function Home() {
             ) : null}
           </div>
         </section>
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <AdSlot className="my-4" pageType="home" slotKey="home-between-1" />
+        </div>
 
         <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <SectionHeader title="আজকের খেলা" href="/latest" />

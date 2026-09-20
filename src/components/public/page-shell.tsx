@@ -1,4 +1,5 @@
 import { getNavigationCategories } from "@/lib/public/content";
+import { AdSlot } from "@/components/public/ad-slot";
 import { SiteHeader } from "@/components/public/site-header";
 
 export async function PageShell({ children }: { children: React.ReactNode }) {
@@ -8,6 +9,7 @@ export async function PageShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[#f7f7f3] text-neutral-950">
       <SiteHeader categories={categories} />
       {children}
+      <AdSlot slotKey="sticky-mobile" stickyMobile />
       <footer className="mt-16 border-t border-neutral-200 bg-neutral-950 text-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-[1fr_1.4fr] lg:px-8">
           <div>

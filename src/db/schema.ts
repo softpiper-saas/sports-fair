@@ -16,6 +16,14 @@ export const articleStatus = pgEnum("article_status", ["draft", "review", "sched
 export const breakingStatus = pgEnum("breaking_status", ["normal", "breaking", "major_breaking", "developing"]);
 export const articleEngagementEventType = pgEnum("article_engagement_event_type", ["view", "share"]);
 export const matchStatus = pgEnum("match_status", ["scheduled", "live", "completed", "postponed", "cancelled"]);
+export const adSlotPlacement = pgEnum("ad_slot_placement", [
+  "top_banner",
+  "article_header",
+  "in_article",
+  "sidebar",
+  "homepage_between_sections",
+  "sticky_mobile"
+]);
 export const homepageSlotType = pgEnum("homepage_slot_type", [
   "lead",
   "secondary",
@@ -351,6 +359,9 @@ export const articles = pgTable(
     status: articleStatus("status").default("draft").notNull(),
     breaking: breakingStatus("breaking").default("normal").notNull(),
     featured: boolean("featured").default(false).notNull(),
+    sponsored: boolean("sponsored").default(false).notNull(),
+    sponsorName: text("sponsor_name"),
+    sponsorLogoId: uuid("sponsor_logo_id").references(() => mediaAssets.id, { onDelete: "set null" }),
     heroImageId: uuid("hero_image_id").references(() => mediaAssets.id, { onDelete: "set null" }),
     authorId: text("author_id").references(() => user.id, { onDelete: "set null" }),
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
@@ -366,8 +377,35 @@ export const articles = pgTable(
     index("articles_author_id_idx").on(table.authorId),
     index("articles_category_id_idx").on(table.categoryId),
     index("articles_published_at_idx").on(table.publishedAt),
+    index("articles_sponsor_logo_id_idx").on(table.sponsorLogoId),
     index("articles_slug_idx").on(table.slug),
     index("articles_status_idx").on(table.status)
+  ]
+);
+
+export const adSlots = pgTable(
+  "ad_slots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slotKey: text("slot_key").notNull().unique(),
+    label: text("label").notNull(),
+    placement: adSlotPlacement("placement").notNull(),
+    html: text("html").notNull(),
+    isActive: boolean("is_active").default(false).notNull(),
+    pageType: text("page_type"),
+    sectionSlug: text("section_slug"),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdById: text("created_by_id").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("ad_slots_active_placement_idx").on(table.isActive, table.placement),
+    index("ad_slots_page_type_idx").on(table.pageType),
+    index("ad_slots_section_slug_idx").on(table.sectionSlug),
+    uniqueIndex("ad_slots_slot_key_idx").on(table.slotKey)
   ]
 );
 

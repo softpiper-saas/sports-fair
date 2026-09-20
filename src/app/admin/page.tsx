@@ -1,4 +1,4 @@
-import { Flame, LayoutGrid, Newspaper, Trophy, Users } from "lucide-react";
+import { BadgeDollarSign, Flame, LayoutGrid, Newspaper, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { AdminFrame } from "@/components/admin/admin-frame";
 import { requireStaffSession } from "@/lib/auth-guard";
@@ -27,6 +27,12 @@ const sections = [
     description: "Import free sports data, create matches and update live scores.",
     href: "/admin/sports",
     icon: Trophy
+  },
+  {
+    title: "Advertising",
+    description: "Manage ad slots, snippets and sponsored content inventory.",
+    href: "/admin/ads",
+    icon: BadgeDollarSign
   },
   {
     title: "Staff",
