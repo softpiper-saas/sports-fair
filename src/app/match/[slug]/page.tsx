@@ -4,6 +4,8 @@ import { CalendarClock, MapPin, Radio, Tv } from "lucide-react";
 import { PageShell } from "@/components/public/page-shell";
 import { formatBanglaDate } from "@/lib/public/content";
 import { getMatchBySlug, getMatchCommentary } from "@/lib/public/matches";
+import { jsonLdScript } from "@/lib/seo/json-ld";
+import { siteName, siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +32,33 @@ export default async function MatchPage({ params }: MatchPageProps) {
   }
 
   const commentary = await getMatchCommentary(match.id);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: match.titleBn,
+    startDate: match.startsAt.toISOString(),
+    eventStatus: eventStatus(match.status),
+    location: match.venueBn
+      ? {
+          "@type": "Place",
+          name: match.venueBn
+        }
+      : undefined,
+    competitor: [match.homeTeam, match.awayTeam].filter(Boolean).map((name) => ({
+      "@type": "SportsTeam",
+      name
+    })),
+    organizer: {
+      "@type": "Organization",
+      name: siteName
+    },
+    url: siteUrl(`/match/${match.slug}`)
+  };
 
   return (
     <PageShell>
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(jsonLd)} />
         <header className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:p-7">
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
             <span className="rounded bg-emerald-50 px-2 py-1 text-primary">{match.sportName ?? "খেলা"}</span>
@@ -94,6 +119,22 @@ export default async function MatchPage({ params }: MatchPageProps) {
       </main>
     </PageShell>
   );
+}
+
+function eventStatus(status: string) {
+  if (status === "completed") {
+    return "https://schema.org/EventCompleted";
+  }
+
+  if (status === "cancelled") {
+    return "https://schema.org/EventCancelled";
+  }
+
+  if (status === "postponed") {
+    return "https://schema.org/EventPostponed";
+  }
+
+  return "https://schema.org/EventScheduled";
 }
 
 function ScoreBlock({ label, score }: { label: string; score: string | null }) {

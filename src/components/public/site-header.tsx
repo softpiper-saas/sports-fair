@@ -38,8 +38,10 @@ export function SiteHeader({ categories }: { categories: NavCategory[] }) {
               স্টাফ
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" aria-label="সার্চ">
-            <Search className="size-5" />
+          <Button asChild variant="ghost" size="icon" aria-label="সার্চ">
+            <Link href="/search">
+              <Search className="size-5" />
+            </Link>
           </Button>
         </div>
       </div>

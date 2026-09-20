@@ -5,6 +5,8 @@ import { ArticleEngagement } from "@/components/public/article-engagement";
 import { ArticleImage } from "@/components/public/article-image";
 import { PageShell } from "@/components/public/page-shell";
 import { formatBanglaDate, getArticleBySlug, getPublishedArticles } from "@/lib/public/content";
+import { jsonLdScript } from "@/lib/seo/json-ld";
+import { siteName, siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -43,10 +45,29 @@ export default async function NewsPage({ params }: NewsPageProps) {
   }
 
   const related = (await getPublishedArticles(6)).filter((item) => item.slug !== article.slug).slice(0, 4);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: article.headlineBn,
+    description: article.seoDescription || article.summary || undefined,
+    image: article.imageUrl ? [article.imageUrl] : undefined,
+    datePublished: article.publishedAt?.toISOString(),
+    dateModified: (article.contentUpdatedAt || article.publishedAt)?.toISOString(),
+    author: {
+      "@type": "Person",
+      name: article.authorName || `${siteName} ডেস্ক`
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteName
+    },
+    mainEntityOfPage: siteUrl(`/news/${article.slug}`)
+  };
 
   return (
     <PageShell>
       <main>
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(jsonLd)} />
         <article className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <header>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
