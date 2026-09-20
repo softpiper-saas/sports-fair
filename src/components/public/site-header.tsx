@@ -56,6 +56,9 @@ export function SiteHeader({ categories }: { categories: NavCategory[] }) {
             </NavLink>
           ))}
           <NavLink href="/results">ফলাফল</NavLink>
+          <NavLink href="/teams">দল</NavLink>
+          <NavLink href="/players">খেলোয়াড়</NavLink>
+          <NavLink href="/tournaments">টুর্নামেন্ট</NavLink>
           <NavLink href="/videos">ভিডিও</NavLink>
           <NavLink href="/photos">ছবি</NavLink>
         </div>

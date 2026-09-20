@@ -49,6 +49,14 @@ export default async function AdminSportsPage() {
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
         <div className="grid gap-6">
           <section className="rounded-lg border bg-card p-5">
+            <h2 className="text-lg font-semibold">Catalog</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Manage teams, players, tournaments, seasons and standings.</p>
+            <Link className="mt-4 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" href="/admin/sports/catalog">
+              Open sports catalog
+            </Link>
+          </section>
+
+          <section className="rounded-lg border bg-card p-5">
             <h2 className="text-lg font-semibold">Create manual match</h2>
             <form action={createManualMatchAction} className="mt-4 grid gap-3">
               <div className="grid gap-3 sm:grid-cols-2">
