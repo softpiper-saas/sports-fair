@@ -12,17 +12,21 @@ import {
   getPublishedVideos,
   getTrendingArticles
 } from "@/lib/public/content";
+import { MatchCard } from "@/components/public/match-card";
+import { getMatchesForList, getUpcomingMatches } from "@/lib/public/matches";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [latest, featured, breakingArticles, breakingBanners, slotArticles, trending, videos, galleries] = await Promise.all([
+  const [latest, featured, breakingArticles, breakingBanners, slotArticles, trending, liveMatches, upcomingMatches, videos, galleries] = await Promise.all([
     getPublishedArticles(14),
     getFeaturedArticles(5),
     getBreakingArticles(5),
     getActiveBreakingNews(5),
     getHomepageSlotArticles(),
     getTrendingArticles(24, 5),
+    getMatchesForList("live", 3),
+    getUpcomingMatches(3),
     getPublishedVideos(4),
     getPublishedGalleries(4)
   ]);
@@ -122,6 +126,18 @@ export default async function Home() {
               </div>
             </div>
           </aside>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <SectionHeader title="লাইভ ও সূচি" href="/live" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[...liveMatches, ...upcomingMatches].slice(0, 3).map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+            {liveMatches.length + upcomingMatches.length === 0 ? (
+              <EmptyPanel title="ম্যাচ ডেটা আসছে" body="অ্যাডমিন থেকে ম্যাচ যোগ করলে লাইভ স্কোর ও সূচি এখানে দেখা যাবে।" />
+            ) : null}
+          </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

@@ -24,8 +24,8 @@ const sections = [
   },
   {
     title: "Sports Data",
-    description: "Manage teams, players, tournaments, matches and standings.",
-    href: "/admin",
+    description: "Import free sports data, create matches and update live scores.",
+    href: "/admin/sports",
     icon: Trophy
   },
   {

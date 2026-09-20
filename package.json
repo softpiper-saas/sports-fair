@@ -15,6 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "auth:seed-admin": "tsx scripts/seed-admin.ts",
+    "sports:sync": "tsx scripts/sync-sports-data.ts",
+    "sports:sync:worker": "tsx scripts/sync-sports-data.ts --worker",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -26,6 +28,8 @@
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-slot": "^1.2.0",
     "@reduxjs/toolkit": "^2.6.1",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.6.1",
     "better-auth": "^1.7.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

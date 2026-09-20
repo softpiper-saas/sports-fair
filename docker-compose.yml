@@ -12,9 +12,45 @@ services:
       - .:/app
       - node_modules:/app/node_modules
       - next_cache:/app/.next
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   migrate:
+    #     condition: service_completed_successfully
+
+  # migrate:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   command: npm run db:migrate
+  #   environment:
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-sportsfair}:${POSTGRES_PASSWORD:-sportsfair}@db:5432/${POSTGRES_DB:-sportsfair}
+  #   volumes:
+  #     - .:/app
+  #     - node_modules:/app/node_modules
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+  sports-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run sports:sync:worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sportsfair}:${POSTGRES_PASSWORD:-sportsfair}@db:5432/${POSTGRES_DB:-sportsfair}
+      SPORTS_SYNC_OPENFOOTBALL_URLS: ${SPORTS_SYNC_OPENFOOTBALL_URLS:-}
+      SPORTS_SYNC_CRICSHEET_JSON_URLS: ${SPORTS_SYNC_CRICSHEET_JSON_URLS:-}
+      CRICKETDATA_API_KEY: ${CRICKETDATA_API_KEY:-}
+      CRICKETDATA_CURRENT_MATCHES_URL: ${CRICKETDATA_CURRENT_MATCHES_URL:-}
+      SPORTS_SYNC_ARCHIVE_INTERVAL_SECONDS: ${SPORTS_SYNC_ARCHIVE_INTERVAL_SECONDS:-86400}
+      SPORTS_SYNC_NEAR_LIVE_INTERVAL_SECONDS: ${SPORTS_SYNC_NEAR_LIVE_INTERVAL_SECONDS:-3600}
+      SPORTS_SYNC_CRICSHEET_ZIP_MATCH_LIMIT: ${SPORTS_SYNC_CRICSHEET_ZIP_MATCH_LIMIT:-100}
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    # depends_on:
+    #   migrate:
+    #     condition: service_completed_successfully
 
   db:
     image: postgres:16-alpine
@@ -28,7 +64,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sportsfair} -d ${POSTGRES_DB:-sportsfair}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-sportsfair} -d ${POSTGRES_DB:-sportsfair}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10

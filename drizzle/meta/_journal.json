@@ -36,6 +36,13 @@
       "when": 1789890537214,
       "tag": "0004_modern_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789893110459,
+      "tag": "0005_cuddly_wraith",
+      "breakpoints": true
     }
   ]
 }

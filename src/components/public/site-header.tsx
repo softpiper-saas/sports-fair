@@ -48,11 +48,14 @@ export function SiteHeader({ categories }: { categories: NavCategory[] }) {
         <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 sm:px-6 lg:px-8">
           <NavLink href="/">হোম</NavLink>
           <NavLink href="/latest">সর্বশেষ</NavLink>
+          <NavLink href="/live">লাইভ স্কোর</NavLink>
+          <NavLink href="/schedule">ম্যাচ সূচি</NavLink>
           {navItems.map((item) => (
             <NavLink key={item.slug} href={`/section/${encodeURIComponent(item.slug)}`}>
               {item.nameBn}
             </NavLink>
           ))}
+          <NavLink href="/results">ফলাফল</NavLink>
           <NavLink href="/videos">ভিডিও</NavLink>
           <NavLink href="/photos">ছবি</NavLink>
         </div>

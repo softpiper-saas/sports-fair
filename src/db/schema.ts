@@ -249,10 +249,16 @@ export const teams = pgTable(
     slug: text("slug").notNull().unique(),
     country: text("country"),
     logoId: uuid("logo_id").references(() => mediaAssets.id, { onDelete: "set null" }),
+    sourceProvider: text("source_provider"),
+    sourceId: text("source_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [index("teams_sport_id_idx").on(table.sportId), index("teams_slug_idx").on(table.slug)]
+  (table) => [
+    index("teams_sport_id_idx").on(table.sportId),
+    index("teams_slug_idx").on(table.slug),
+    uniqueIndex("teams_source_provider_id_idx").on(table.sourceProvider, table.sourceId)
+  ]
 );
 
 export const players = pgTable(
@@ -298,10 +304,16 @@ export const tournaments = pgTable(
     nameEn: text("name_en"),
     slug: text("slug").notNull().unique(),
     logoId: uuid("logo_id").references(() => mediaAssets.id, { onDelete: "set null" }),
+    sourceProvider: text("source_provider"),
+    sourceId: text("source_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [index("tournaments_sport_id_idx").on(table.sportId), index("tournaments_slug_idx").on(table.slug)]
+  (table) => [
+    index("tournaments_sport_id_idx").on(table.sportId),
+    index("tournaments_slug_idx").on(table.slug),
+    uniqueIndex("tournaments_source_provider_id_idx").on(table.sourceProvider, table.sourceId)
+  ]
 );
 
 export const seasons = pgTable(
@@ -315,10 +327,15 @@ export const seasons = pgTable(
     nameEn: text("name_en"),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
+    sourceProvider: text("source_provider"),
+    sourceId: text("source_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [index("seasons_tournament_id_idx").on(table.tournamentId)]
+  (table) => [
+    index("seasons_tournament_id_idx").on(table.tournamentId),
+    uniqueIndex("seasons_source_provider_id_idx").on(table.sourceProvider, table.sourceId)
+  ]
 );
 
 export const articles = pgTable(
@@ -429,6 +446,11 @@ export const matches = pgTable(
     awayScore: text("away_score"),
     scoreSummary: text("score_summary"),
     liveSummary: text("live_summary"),
+    sourceProvider: text("source_provider"),
+    sourceId: text("source_id"),
+    sourceUrl: text("source_url"),
+    rawPayload: jsonb("raw_payload"),
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
@@ -436,7 +458,8 @@ export const matches = pgTable(
     index("matches_sport_id_idx").on(table.sportId),
     index("matches_starts_at_idx").on(table.startsAt),
     index("matches_status_idx").on(table.status),
-    index("matches_slug_idx").on(table.slug)
+    index("matches_slug_idx").on(table.slug),
+    uniqueIndex("matches_source_provider_id_idx").on(table.sourceProvider, table.sourceId)
   ]
 );
 
