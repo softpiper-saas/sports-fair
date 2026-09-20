@@ -14,6 +14,7 @@ import {
 
 export const articleStatus = pgEnum("article_status", ["draft", "review", "scheduled", "published", "archived"]);
 export const breakingStatus = pgEnum("breaking_status", ["normal", "breaking", "major_breaking", "developing"]);
+export const articleEngagementEventType = pgEnum("article_engagement_event_type", ["view", "share"]);
 export const matchStatus = pgEnum("match_status", ["scheduled", "live", "completed", "postponed", "cancelled"]);
 export const homepageSlotType = pgEnum("homepage_slot_type", [
   "lead",
@@ -500,4 +501,45 @@ export const homepageSlots = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => [index("homepage_slots_type_order_idx").on(table.slotType, table.sortOrder)]
+);
+
+export const breakingNews = pgTable(
+  "breaking_news",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    titleBn: text("title_bn").notNull(),
+    summary: text("summary"),
+    articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
+    priority: integer("priority").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    isDeveloping: boolean("is_developing").default(false).notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdById: text("created_by_id").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("breaking_news_active_window_idx").on(table.isActive, table.startsAt, table.endsAt),
+    index("breaking_news_article_id_idx").on(table.articleId)
+  ]
+);
+
+export const articleEngagementEvents = pgTable(
+  "article_engagement_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    articleId: uuid("article_id")
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    eventType: articleEngagementEventType("event_type").notNull(),
+    path: text("path"),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("article_engagement_article_created_idx").on(table.articleId, table.createdAt),
+    index("article_engagement_type_created_idx").on(table.eventType, table.createdAt)
+  ]
 );

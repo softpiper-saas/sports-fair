@@ -1,4 +1,4 @@
-import { Newspaper, Trophy, Users } from "lucide-react";
+import { Flame, LayoutGrid, Newspaper, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { AdminFrame } from "@/components/admin/admin-frame";
 import { requireStaffSession } from "@/lib/auth-guard";
@@ -9,6 +9,18 @@ const sections = [
     description: "Create articles, breaking news, videos and galleries.",
     href: "/admin/articles",
     icon: Newspaper
+  },
+  {
+    title: "Homepage Control",
+    description: "Curate lead stories, editor picks and homepage sections.",
+    href: "/admin/homepage",
+    icon: LayoutGrid
+  },
+  {
+    title: "Breaking Console",
+    description: "Publish active breaking banners with priority and timing.",
+    href: "/admin/breaking",
+    icon: Flame
   },
   {
     title: "Sports Data",

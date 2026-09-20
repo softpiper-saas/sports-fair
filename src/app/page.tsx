@@ -3,26 +3,42 @@ import { ArrowRight, Radio } from "lucide-react";
 import { PageShell } from "@/components/public/page-shell";
 import { StoryCard } from "@/components/public/story-card";
 import {
+  getActiveBreakingNews,
   getBreakingArticles,
   getFeaturedArticles,
+  getHomepageSlotArticles,
   getPublishedArticles,
   getPublishedGalleries,
-  getPublishedVideos
+  getPublishedVideos,
+  getTrendingArticles
 } from "@/lib/public/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [latest, featured, breaking, videos, galleries] = await Promise.all([
+  const [latest, featured, breakingArticles, breakingBanners, slotArticles, trending, videos, galleries] = await Promise.all([
     getPublishedArticles(14),
     getFeaturedArticles(5),
     getBreakingArticles(5),
+    getActiveBreakingNews(5),
+    getHomepageSlotArticles(),
+    getTrendingArticles(24, 5),
     getPublishedVideos(4),
     getPublishedGalleries(4)
   ]);
-  const lead = featured[0] ?? latest[0];
-  const secondary = latest.filter((article) => article.id !== lead?.id).slice(0, 4);
-  const moreStories = latest.filter((article) => article.id !== lead?.id).slice(4, 12);
+  const lead = slotArticles.find((article) => article.slotType === "lead") ?? featured[0] ?? latest[0];
+  const secondarySlots = slotArticles.filter((article) => article.slotType === "secondary");
+  const editorPicks = slotArticles.filter((article) => article.slotType === "editor_pick");
+  const cricketSlots = slotArticles.filter((article) => article.slotType === "cricket");
+  const footballSlots = slotArticles.filter((article) => article.slotType === "football");
+  const usedIds = new Set([lead?.id, ...secondarySlots.map((article) => article.id)].filter(Boolean));
+  const secondary = [...secondarySlots, ...latest.filter((article) => !usedIds.has(article.id))].slice(0, 4);
+  const moreStories = [
+    ...editorPicks,
+    ...cricketSlots,
+    ...footballSlots,
+    ...latest.filter((article) => article.id !== lead?.id)
+  ].slice(0, 12);
 
   return (
     <PageShell>
@@ -34,8 +50,22 @@ export default async function Home() {
               লাইভ আপডেট
             </div>
             <div className="flex gap-4 overflow-x-auto pb-1 text-sm font-semibold text-neutral-800">
-              {breaking.length > 0 ? (
-                breaking.map((item) => (
+              {breakingBanners.length > 0 ? (
+                breakingBanners.map((item) =>
+                  item.articleSlug ? (
+                    <Link key={item.id} href={`/news/${encodeURIComponent(item.articleSlug)}`} className="min-w-64 hover:text-primary">
+                      {item.isDeveloping ? "ডেভেলপিং: " : ""}
+                      {item.titleBn}
+                    </Link>
+                  ) : (
+                    <span key={item.id} className="min-w-64">
+                      {item.isDeveloping ? "ডেভেলপিং: " : ""}
+                      {item.titleBn}
+                    </span>
+                  )
+                )
+              ) : breakingArticles.length > 0 ? (
+                breakingArticles.map((item) => (
                   <Link key={item.id} href={`/news/${encodeURIComponent(item.slug)}`} className="min-w-64 hover:text-primary">
                     {item.headlineBn}
                   </Link>
@@ -75,6 +105,21 @@ export default async function Home() {
               ) : (
                 <p className="py-5 text-sm leading-6 text-muted-foreground">আরও খবর প্রকাশের পর এই তালিকা আপডেট হবে।</p>
               )}
+            </div>
+            <div className="mt-5 rounded-md bg-neutral-950 p-4 text-white">
+              <h2 className="text-base font-black">জনপ্রিয়</h2>
+              <div className="mt-3 grid gap-3">
+                {trending.length > 0 ? (
+                  trending.map((item, index) => (
+                    <Link key={item.id} href={`/news/${encodeURIComponent(item.slug)}`} className="grid grid-cols-[28px_1fr] gap-3 text-sm font-bold leading-snug hover:text-emerald-300">
+                      <span className="text-emerald-300">{index + 1}</span>
+                      <span>{item.headlineBn}</span>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-sm leading-6 text-neutral-300">পাঠক পড়া শুরু করলে এখানে ২৪ ঘণ্টার জনপ্রিয় খবর দেখা যাবে।</p>
+                )}
+              </div>
             </div>
           </aside>
         </section>

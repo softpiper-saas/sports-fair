@@ -1,6 +1,17 @@
-import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { articles, categories, galleries, galleryImages, mediaAssets, user, videos } from "@/db/schema";
+import {
+  articleEngagementEvents,
+  articles,
+  breakingNews,
+  categories,
+  galleries,
+  galleryImages,
+  homepageSlots,
+  mediaAssets,
+  user,
+  videos
+} from "@/db/schema";
 
 export type PublicArticle = Awaited<ReturnType<typeof getPublishedArticles>>[number];
 
@@ -96,6 +107,95 @@ export async function getBreakingArticles(limit = 5) {
     .from(articles)
     .where(and(publishedArticleWhere, ne(articles.breaking, "normal")))
     .orderBy(desc(articles.publishedAt), desc(articles.updatedAt))
+    .limit(limit);
+}
+
+export async function getActiveBreakingNews(limit = 5) {
+  const now = new Date();
+
+  return db
+    .select({
+      id: breakingNews.id,
+      titleBn: breakingNews.titleBn,
+      summary: breakingNews.summary,
+      priority: breakingNews.priority,
+      isDeveloping: breakingNews.isDeveloping,
+      startsAt: breakingNews.startsAt,
+      articleSlug: articles.slug
+    })
+    .from(breakingNews)
+    .leftJoin(articles, eq(breakingNews.articleId, articles.id))
+    .where(
+      and(
+        eq(breakingNews.isActive, true),
+        or(isNull(breakingNews.startsAt), lte(breakingNews.startsAt, now)),
+        or(isNull(breakingNews.endsAt), gte(breakingNews.endsAt, now))
+      )
+    )
+    .orderBy(desc(breakingNews.priority), desc(breakingNews.startsAt), desc(breakingNews.createdAt))
+    .limit(limit);
+}
+
+export async function getHomepageSlotArticles() {
+  const now = new Date();
+
+  return db
+    .select({
+      slotId: homepageSlots.id,
+      slotType: homepageSlots.slotType,
+      slotLabel: homepageSlots.label,
+      sortOrder: homepageSlots.sortOrder,
+      id: articles.id,
+      headlineBn: articles.headlineBn,
+      slug: articles.slug,
+      summary: articles.summary,
+      breaking: articles.breaking,
+      featured: articles.featured,
+      publishedAt: articles.publishedAt,
+      updatedAt: articles.updatedAt,
+      categoryName: categories.nameBn,
+      categorySlug: categories.slug,
+      imageUrl: mediaAssets.publicUrl,
+      imageAlt: mediaAssets.altBn,
+      imageCaption: mediaAssets.captionBn,
+      authorName: user.name
+    })
+    .from(homepageSlots)
+    .innerJoin(articles, eq(homepageSlots.articleId, articles.id))
+    .leftJoin(categories, eq(articles.categoryId, categories.id))
+    .leftJoin(mediaAssets, eq(articles.heroImageId, mediaAssets.id))
+    .leftJoin(user, eq(articles.authorId, user.id))
+    .where(
+      and(
+        eq(articles.status, "published"),
+        or(isNull(homepageSlots.startsAt), lte(homepageSlots.startsAt, now)),
+        or(isNull(homepageSlots.endsAt), gte(homepageSlots.endsAt, now))
+      )
+    )
+    .orderBy(homepageSlots.slotType, homepageSlots.sortOrder, desc(homepageSlots.updatedAt));
+}
+
+export async function getTrendingArticles(hours = 24, limit = 5) {
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+  return db
+    .select({
+      id: articles.id,
+      headlineBn: articles.headlineBn,
+      slug: articles.slug,
+      eventCount: sql<number>`count(${articleEngagementEvents.id})::int`
+    })
+    .from(articleEngagementEvents)
+    .innerJoin(articles, eq(articleEngagementEvents.articleId, articles.id))
+    .where(
+      and(
+        eq(articles.status, "published"),
+        eq(articleEngagementEvents.eventType, "view"),
+        gte(articleEngagementEvents.createdAt, since)
+      )
+    )
+    .groupBy(articles.id, articles.headlineBn, articles.slug)
+    .orderBy(desc(sql<number>`count(${articleEngagementEvents.id})`), desc(articles.publishedAt))
     .limit(limit);
 }
 

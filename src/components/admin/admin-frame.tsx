@@ -4,6 +4,8 @@ import type { AuthSession } from "@/lib/auth";
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/homepage", label: "Homepage" },
+  { href: "/admin/breaking", label: "Breaking" },
   { href: "/admin/articles", label: "Articles" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/media", label: "Media" },

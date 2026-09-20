@@ -9,9 +9,11 @@ import { db } from "@/db";
 import {
   articleTags,
   articles,
+  breakingNews,
   categories,
   galleries,
   galleryImages,
+  homepageSlots,
   mediaAssets,
   tags,
   videos
@@ -23,6 +25,7 @@ import { ensureSlug } from "@/lib/slug";
 
 const articleStatusSchema = z.enum(["draft", "review", "scheduled", "published", "archived"]);
 const breakingStatusSchema = z.enum(["normal", "breaking", "major_breaking", "developing"]);
+const homepageSlotTypeSchema = z.enum(["lead", "secondary", "editor_pick", "cricket", "football", "video"]);
 
 function sanitizeBody(value: string) {
   return sanitizeHtml(value, {
@@ -312,4 +315,118 @@ export async function removeGalleryImageAction(galleryId: string, mediaAssetId: 
     .where(and(eq(galleryImages.galleryId, galleryId), eq(galleryImages.mediaAssetId, mediaAssetId)));
 
   revalidatePath("/admin/galleries");
+}
+
+export async function createHomepageSlotAction(formData: FormData) {
+  await requireStaffSession(["admin", "editor"]);
+
+  const articleId = nullableFormString(formData, "articleId");
+
+  if (!articleId) {
+    throw new Error("Select an article for the homepage slot.");
+  }
+
+  await db.insert(homepageSlots).values({
+    slotType: homepageSlotTypeSchema.parse(formString(formData, "slotType") || "secondary"),
+    label: nullableFormString(formData, "label"),
+    articleId,
+    sortOrder: formInteger(formData, "sortOrder") ?? 0,
+    startsAt: formDate(formData, "startsAt"),
+    endsAt: formDate(formData, "endsAt")
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/homepage");
+  redirect("/admin/homepage");
+}
+
+export async function updateHomepageSlotAction(slotId: string, formData: FormData) {
+  await requireStaffSession(["admin", "editor"]);
+
+  await db
+    .update(homepageSlots)
+    .set({
+      slotType: homepageSlotTypeSchema.parse(formString(formData, "slotType") || "secondary"),
+      label: nullableFormString(formData, "label"),
+      articleId: nullableFormString(formData, "articleId"),
+      sortOrder: formInteger(formData, "sortOrder") ?? 0,
+      startsAt: formDate(formData, "startsAt"),
+      endsAt: formDate(formData, "endsAt"),
+      updatedAt: new Date()
+    })
+    .where(eq(homepageSlots.id, slotId));
+
+  revalidatePath("/");
+  revalidatePath("/admin/homepage");
+}
+
+export async function deleteHomepageSlotAction(slotId: string) {
+  await requireStaffSession(["admin", "editor"]);
+
+  await db.delete(homepageSlots).where(eq(homepageSlots.id, slotId));
+
+  revalidatePath("/");
+  revalidatePath("/admin/homepage");
+}
+
+export async function createBreakingNewsAction(formData: FormData) {
+  const session = await requireStaffSession(["admin", "editor"]);
+  const titleBn = formString(formData, "titleBn");
+
+  if (!titleBn) {
+    throw new Error("Breaking news title is required.");
+  }
+
+  await db.insert(breakingNews).values({
+    titleBn,
+    summary: nullableFormString(formData, "summary"),
+    articleId: nullableFormString(formData, "articleId"),
+    priority: formInteger(formData, "priority") ?? 0,
+    isActive: formBoolean(formData, "isActive"),
+    isDeveloping: formBoolean(formData, "isDeveloping"),
+    startsAt: formDate(formData, "startsAt"),
+    endsAt: formDate(formData, "endsAt"),
+    createdById: session.user.id
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/breaking");
+  redirect("/admin/breaking");
+}
+
+export async function updateBreakingNewsAction(breakingId: string, formData: FormData) {
+  await requireStaffSession(["admin", "editor"]);
+
+  const titleBn = formString(formData, "titleBn");
+
+  if (!titleBn) {
+    throw new Error("Breaking news title is required.");
+  }
+
+  await db
+    .update(breakingNews)
+    .set({
+      titleBn,
+      summary: nullableFormString(formData, "summary"),
+      articleId: nullableFormString(formData, "articleId"),
+      priority: formInteger(formData, "priority") ?? 0,
+      isActive: formBoolean(formData, "isActive"),
+      isDeveloping: formBoolean(formData, "isDeveloping"),
+      startsAt: formDate(formData, "startsAt"),
+      endsAt: formDate(formData, "endsAt"),
+      updatedAt: new Date()
+    })
+    .where(eq(breakingNews.id, breakingId));
+
+  revalidatePath("/");
+  revalidatePath("/admin/breaking");
+}
+
+export async function deleteBreakingNewsAction(breakingId: string) {
+  await requireStaffSession(["admin", "editor"]);
+
+  await db.delete(breakingNews).where(eq(breakingNews.id, breakingId));
+
+  revalidatePath("/");
+  revalidatePath("/admin/breaking");
 }

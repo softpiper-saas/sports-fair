@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArticleEngagement } from "@/components/public/article-engagement";
 import { ArticleImage } from "@/components/public/article-image";
 import { PageShell } from "@/components/public/page-shell";
 import { formatBanglaDate, getArticleBySlug, getPublishedArticles } from "@/lib/public/content";
@@ -66,6 +67,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
               <time dateTime={(article.publishedAt || new Date()).toISOString()}>{formatBanglaDate(article.publishedAt)}</time>
               {article.contentUpdatedAt ? <span>আপডেট: {formatBanglaDate(article.contentUpdatedAt)}</span> : null}
             </div>
+            <ArticleEngagement articleId={article.id} title={article.headlineBn} />
           </header>
 
           <figure className="mt-7 overflow-hidden rounded-lg border border-neutral-200 bg-white">
