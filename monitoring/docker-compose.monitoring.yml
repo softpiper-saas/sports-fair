@@ -41,6 +41,32 @@ services:
     depends_on:
       - alertmanager
 
+  loki:
+    image: grafana/loki:3.3.2
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/loki.yml"]
+    ports:
+      - "${LOKI_PORT:-127.0.0.1:3100}:3100"
+    volumes:
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
+
+  alloy:
+    image: grafana/alloy:v1.5.1
+    restart: unless-stopped
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+    ports:
+      - "${ALLOY_PORT:-127.0.0.1:12345}:12345"
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+
   grafana:
     image: grafana/grafana:11.4.0
     restart: unless-stopped
@@ -58,6 +84,7 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+      - loki
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
@@ -92,5 +119,6 @@ services:
 volumes:
   alertmanager_data:
   prometheus_data:
+  loki_data:
   grafana_data:
   uptime_kuma_data:

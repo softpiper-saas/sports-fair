@@ -70,6 +70,8 @@ GRAFANA_ADMIN_PASSWORD=
 GRAFANA_PORT=127.0.0.1:3001
 PROMETHEUS_PORT=127.0.0.1:9090
 PROMETHEUS_RETENTION=15d
+LOKI_PORT=127.0.0.1:3100
+ALLOY_PORT=127.0.0.1:12345
 PROMETHEUS_EXTERNAL_URL=http://localhost:9090
 ALERTMANAGER_PORT=127.0.0.1:9093
 ALERTMANAGER_EXTERNAL_URL=http://localhost:9093
@@ -104,6 +106,8 @@ Grafana: http://127.0.0.1:3001
 Prometheus: http://127.0.0.1:9090
 Uptime Kuma: http://127.0.0.1:3002
 Alertmanager: http://127.0.0.1:9093
+Loki: http://127.0.0.1:3100
+Grafana Alloy: http://127.0.0.1:12345
 ```
 
 Use an SSH tunnel, VPN or reverse-proxy auth to access these dashboards remotely.
@@ -126,7 +130,7 @@ Private or protected:
 - Node Exporter.
 - Discord alert bridge.
 
-Do not expose Prometheus, Alertmanager, cAdvisor, Loki, Node Exporter or the Discord alert bridge directly to the public internet.
+Do not expose Prometheus, Alertmanager, Grafana Alloy, cAdvisor, Loki, Node Exporter or the Discord alert bridge directly to the public internet.
 
 ## Initial Uptime Checks
 
@@ -170,3 +174,18 @@ The Discord bridge health endpoint is internal only:
 ```text
 http://discord-alert-bridge:8080/health
 ```
+
+## Centralized Logs
+
+Phase 2 sends Docker logs to Loki through Grafana Alloy. Grafana provisions the Loki datasource and a `Sportsfair Logs` dashboard automatically.
+
+Useful starter LogQL queries:
+
+```text
+{app="sportsfair"} | json | level >= 50
+{app="sportsfair", event="http_request"} | json | durationMs > 1000
+{app="sportsfair"} |~ "(sports|sync)"
+{app="sportsfair"} |~ "(auth|login|forbidden)"
+```
+
+Structured application logs should include `requestId` when available. Use the `x-request-id` response header from a failed request to search related logs.
