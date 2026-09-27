@@ -47,6 +47,7 @@ Use this ID when searching future application logs, Sentry errors and traces.
 Phase 0 variables:
 
 ```text
+NEXT_PUBLIC_APP_ENV=development
 APP_VERSION=development
 LOG_LEVEL=info
 OTEL_SERVICE_NAME=sportsfair-web
@@ -66,8 +67,46 @@ Monitoring service variables for Phase 1:
 
 ```text
 GRAFANA_ADMIN_PASSWORD=
+GRAFANA_PORT=127.0.0.1:3001
+PROMETHEUS_PORT=127.0.0.1:9090
+PROMETHEUS_RETENTION=15d
+PROMETHEUS_EXTERNAL_URL=http://localhost:9090
+ALERTMANAGER_PORT=127.0.0.1:9093
+ALERTMANAGER_EXTERNAL_URL=http://localhost:9093
+DISCORD_ALERT_WEBHOOK_URL=
+DISCORD_ALERT_USERNAME=Sportsfair Alerts
+DISCORD_ALERT_AVATAR_URL=
 UPTIME_KUMA_ADMIN_PASSWORD=
+UPTIME_KUMA_PORT=127.0.0.1:3002
 ```
+
+## Sentry Sampling
+
+```text
+SENTRY_TRACES_SAMPLE_RATE=0.1
+NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.05
+NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE=0
+NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE=0
+```
+
+## Phase 1 Monitoring Stack
+
+Start the VPS monitoring stack with:
+
+```bash
+docker compose -f monitoring/docker-compose.monitoring.yml up -d
+```
+
+Local-only default ports:
+
+```text
+Grafana: http://127.0.0.1:3001
+Prometheus: http://127.0.0.1:9090
+Uptime Kuma: http://127.0.0.1:3002
+Alertmanager: http://127.0.0.1:9093
+```
+
+Use an SSH tunnel, VPN or reverse-proxy auth to access these dashboards remotely.
 
 ## VPS Access Rules
 
@@ -80,12 +119,14 @@ Private or protected:
 
 - Grafana.
 - Prometheus.
+- Alertmanager.
 - Loki.
 - Grafana Alloy.
 - cAdvisor.
 - Node Exporter.
+- Discord alert bridge.
 
-Do not expose Prometheus, cAdvisor, Loki or Node Exporter directly to the public internet.
+Do not expose Prometheus, Alertmanager, cAdvisor, Loki, Node Exporter or the Discord alert bridge directly to the public internet.
 
 ## Initial Uptime Checks
 
@@ -101,3 +142,31 @@ Suggested first threshold:
 - Homepage unavailable for 2 consecutive checks.
 - Health endpoint returns non-2xx for 2 consecutive checks.
 - SSL certificate expires within 14 days.
+
+## Phase 1 Alerts
+
+Prometheus loads starter rules from:
+
+```text
+monitoring/prometheus/rules/sportsfair-alerts.yml
+```
+
+Included rules:
+
+- target down
+- high CPU
+- high memory
+- low disk space
+- container restart
+
+Alert notifications are routed through Alertmanager to Discord via `monitoring/alertmanager/discord-webhook.mjs`. Set `DISCORD_ALERT_WEBHOOK_URL` in `.env` before starting the monitoring stack.
+
+## Discord Alert Test
+
+After setting `DISCORD_ALERT_WEBHOOK_URL`, restart the monitoring stack and trigger a temporary alert by stopping a scrape target or by posting a sample Alertmanager payload to the bridge from inside the Compose network.
+
+The Discord bridge health endpoint is internal only:
+
+```text
+http://discord-alert-bridge:8080/health
+```
