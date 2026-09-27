@@ -2,6 +2,8 @@ services:
   prometheus:
     image: prom/prometheus:v3.0.1
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -63,7 +65,6 @@ services:
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     depends_on:
       - loki
 
@@ -93,9 +94,11 @@ services:
       - "--path.rootfs=/host"
     pid: host
     volumes:
-      - /:/host:ro,rslave
+      - /:/host:ro
 
   cadvisor:
+    profiles:
+      - cadvisor
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     restart: unless-stopped
     privileged: true

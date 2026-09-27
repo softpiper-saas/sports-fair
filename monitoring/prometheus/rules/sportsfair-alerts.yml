@@ -45,3 +45,50 @@ groups:
         annotations:
           summary: "Container restarted"
           description: "Container {{ $labels.name }} restarted within the last 15 minutes."
+
+  - name: sportsfair-application
+    rules:
+      - alert: SportsfairDatabaseUnavailable
+        expr: sportsfair_database_health_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sportsfair database health check is failing"
+          description: "The application metrics endpoint reports that database health checks have failed for more than 2 minutes."
+
+      - alert: SportsfairApiHighErrorRate
+        expr: (sum(rate(sportsfair_http_requests_total{status_code=~"5.."}[5m])) / clamp_min(sum(rate(sportsfair_http_requests_total[5m])), 0.001)) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API error rate"
+          description: "More than 5% of instrumented Sportsfair requests are returning 5xx responses."
+
+      - alert: SportsfairApiHighLatency
+        expr: histogram_quantile(0.95, sum by (le, route) (rate(sportsfair_http_request_duration_seconds_bucket[5m]))) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency"
+          description: "P95 latency for {{ $labels.route }} has stayed above 2 seconds for 10 minutes."
+
+      - alert: SportsfairMatchDataStale
+        expr: sportsfair_match_count{status="all"} > 0 and sportsfair_match_data_freshness_seconds{status="all"} > 86400
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Match data looks stale"
+          description: "The freshest match sync/update is older than 24 hours."
+
+      - alert: SportsfairCommentModerationBacklogHigh
+        expr: sportsfair_comment_moderation_backlog > 100
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Comment moderation backlog is high"
+          description: "There are more than 100 pending comments awaiting moderation."

@@ -47,7 +47,7 @@ loki.process "app" {
       requestId = "requestId",
       route = "route",
       statusCode = "statusCode",
-      durationMs = "durationMs"
+      durationMs = "durationMs",
     }
   }
 
@@ -55,7 +55,7 @@ loki.process "app" {
     values = {
       level = "",
       event = "",
-      route = ""
+      route = "",
     }
   }
 

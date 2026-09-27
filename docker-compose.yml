@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sportsfair}:${POSTGRES_PASSWORD:-sportsfair}@db:5432/${POSTGRES_DB:-sportsfair}
     ports:
@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run sports:sync:worker
+    command: sh -c "npm install && npm run sports:sync:worker"
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sportsfair}:${POSTGRES_PASSWORD:-sportsfair}@db:5432/${POSTGRES_DB:-sportsfair}

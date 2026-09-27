@@ -3,6 +3,7 @@ import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
+import { observeHttpRequest } from "@/lib/metrics";
 
 const createPostSchema = z.object({
   title: z.string().trim().min(3).max(120),
@@ -10,6 +11,10 @@ const createPostSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  return observeHttpRequest(() => handleCreatePost(request), { method: request.method, route: "/api/posts" });
+}
+
+async function handleCreatePost(request: Request) {
   const payload = createPostSchema.parse(await request.json());
   const sanitizedContent = sanitizeHtml(payload.content, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["h1", "h2", "img"]),

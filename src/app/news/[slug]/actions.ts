@@ -8,6 +8,7 @@ import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 import { db } from "@/db";
 import { articleComments, articles, pollOptions, polls, pollVotes } from "@/db/schema";
+import { recordCommentSubmission, recordPollVote } from "@/lib/metrics";
 
 const commentSchema = z.object({
   authorName: z.string().trim().min(2).max(80),
@@ -56,6 +57,7 @@ export async function submitCommentAction(articleId: string, slug: string, formD
   });
 
   if (!parsed.success) {
+    recordCommentSubmission("validation_error");
     throw new Error("নাম এবং মন্তব্য ঠিকভাবে লিখুন।");
   }
 
@@ -66,6 +68,7 @@ export async function submitCommentAction(articleId: string, slug: string, formD
     .limit(1);
 
   if (!article) {
+    recordCommentSubmission("article_unavailable");
     throw new Error("Article is not available for comments.");
   }
 
@@ -79,12 +82,20 @@ export async function submitCommentAction(articleId: string, slug: string, formD
     ipHash,
     userAgent
   });
+  recordCommentSubmission("accepted");
 
   revalidatePath(`/news/${slug}`);
 }
 
 export async function votePollAction(articleId: string, slug: string, formData: FormData) {
-  const optionId = z.string().uuid().parse(formData.get("optionId"));
+  const parsedOptionId = z.string().uuid().safeParse(formData.get("optionId"));
+
+  if (!parsedOptionId.success) {
+    recordPollVote("validation_error");
+    throw new Error("Poll option is not available.");
+  }
+
+  const optionId = parsedOptionId.data;
   const voterKey = await getOrCreateVoterKey();
   const now = new Date();
 
@@ -104,6 +115,7 @@ export async function votePollAction(articleId: string, slug: string, formData: 
     .limit(1);
 
   if (!option) {
+    recordPollVote("option_unavailable");
     throw new Error("Poll option is not available.");
   }
 
@@ -118,6 +130,7 @@ export async function votePollAction(articleId: string, slug: string, formData: 
       target: [pollVotes.pollId, pollVotes.voterKey],
       set: { optionId: option.optionId, updatedAt: new Date() }
     });
+  recordPollVote("accepted");
 
   revalidatePath(`/news/${slug}`);
 }

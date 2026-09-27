@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { childLogger } from "@/lib/logger";
+import { observeHttpRequest, recordDatabaseHealth } from "@/lib/metrics";
 import { getRequestId } from "@/lib/observability/request-id";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +52,10 @@ async function checkDatabase(): Promise<HealthCheck> {
 }
 
 export async function GET(request: Request) {
+  return observeHttpRequest(() => handleHealthRequest(request), { method: request.method, route: "/api/health" });
+}
+
+async function handleHealthRequest(request: Request) {
   const started = performance.now();
   const [requestId, database] = await Promise.all([getRequestId(), checkDatabase()]);
   const healthy = database.status === "ok";
@@ -72,6 +77,7 @@ export async function GET(request: Request) {
     },
     healthy ? "Health check passed" : "Health check failed"
   );
+  recordDatabaseHealth(healthy, database.latencyMs ?? durationMs);
 
   return NextResponse.json(
     {

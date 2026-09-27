@@ -22,10 +22,6 @@ scrape_configs:
       - targets:
           - node-exporter:9100
 
-  - job_name: cadvisor
-    static_configs:
-      - targets:
-          - cadvisor:8080
 
   - job_name: alertmanager
     static_configs:
@@ -36,3 +32,9 @@ scrape_configs:
     static_configs:
       - targets:
           - discord-alert-bridge:8080
+
+  - job_name: sportsfair-app
+    metrics_path: /api/metrics
+    static_configs:
+      - targets:
+          - host.docker.internal:3000
